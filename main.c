@@ -25,7 +25,7 @@ int Stk_Ctor(struct Stk_t *Stk, unsigned int Capacity);
 
 int Stk_Dtor(struct Stk_t *Stk);
 
-int Stk_Dumper();
+void Stk_Dumper(struct Stk_t *Stk);
 
 int Stk_Verifier(struct Stk_t *Stk);
 
@@ -46,48 +46,47 @@ void Stk_Assertion_Func(struct Stk_t *Stk, int Exit_Code);
 int main() {
     int Exit_Code = ALL_GOOD;
 
-    while (Exit_Code == ALL_GOOD) {
-        struct Stk_t Stk = {};
+    struct Stk_t Stk = {};
 
-        unsigned int Capacity = 5;    // this is gonna be starting Capacity
-
+    unsigned int Capacity = 5;    // this is gonna be starting Capacity
 
 
-        Exit_Code *= Stk_Ctor(&Stk, Capacity);
+
+    Exit_Code *= Stk_Ctor(&Stk, Capacity);
+    Stk_Assertion_Func(&Stk, Exit_Code);
+
+
+    for (int i = 0; i < 10/*How many do u want to pop*/; i++) {
+        Stk_Elem_t New_Element = Reader();
+        Exit_Code *= Stk_Push(&Stk,  New_Element);
+        Stk_Assertion_Func(&Stk, Exit_Code);
+    }
+
+
+
+
+
+    for (int i = 0; i < Stk.Capacity; i++)
+        printf("%lf ", Stk.Data[i]);
+    printf("\n");
+
+
+    // Using pop
+    for (int i = 0; i < 10/*How many do u want to pop*/; i++) {
+        Exit_Code *= Stk_Pop(&Stk);
         Stk_Assertion_Func(&Stk, Exit_Code);
 
 
-        for (int i = 0; i < 10/*How many do u want to pop*/; i++) {
-            Stk_Elem_t New_Element = Reader();
-            Exit_Code *= Stk_Push(&Stk,  New_Element);
-            Stk_Assertion_Func(&Stk, Exit_Code);
-        }
-
-
-
-
-
-        for (int i = 0; i < Stk.Capacity; i++)
+    for (i = 0; i < Stk.Capacity; i++)
             printf("%lf ", Stk.Data[i]);
+
         printf("\n");
-
-
-        // Using pop
-        for (int i = 0; i < 10/*How many do u want to pop*/; i++) {
-            Exit_Code *= Stk_Pop(&Stk);
-            Stk_Assertion_Func(&Stk, Exit_Code);
-
-
-            for (int i = 0; i < Stk.Capacity; i++)
-                printf("%lf ", Stk.Data[i]);
-
-            printf("\n");
-        }
-        Exit_Code *= Stk_Dtor(&Stk);
-
-        Exit_Code = SUCCESS;
-        printf("%d", Exit_Code);
     }
+    Exit_Code *= Stk_Dtor(&Stk);
+
+    Exit_Code = SUCCESS;
+    printf("%d", Exit_Code);
+
 }
 
 
@@ -232,6 +231,16 @@ void Stk_Assertion_Func(struct Stk_t *Stk, int Exit_Code) {
     if (!Exit_Code) {
         assert(Exit_Code); // and there write the line with error
     }
+}
+
+
+
+void Stk_Dumper(struct Stk_t *Stk) {
+    printf("Capacity = %d\n", Stk->Capacity);
+    printf("Size = %d\n", Stk->Size);
+
+    for (int i = 0; i < Stk->Capacity; i++)
+        printf("Data[%d] = %lf\n", i, Stk->Data [i]);
 }
 
 
