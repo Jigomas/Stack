@@ -34,7 +34,9 @@ int Stk_Push(struct Stk_t *Stk, Stk_Elem_t New_Element);
 int Stk_Pop(struct Stk_t *Stk);
 
 void Stk_Free_Mem(struct Stk_t **Stk);
-
+// PascalCase
+// snake_case
+// camelCase
 void Stk_Add_Mem(struct Stk_t **Stk);
 
 Stk_Elem_t Reader();
@@ -56,7 +58,7 @@ int main() {
     Stk_Assertion_Func(&Stk, Exit_Code);
 
 
-    for (int i = 0; i < 10/*How many do u want to pop*/; i++) {
+    for (int i = 0; i < 10/*How many do u want to Push*/; i++) {
         Stk_Elem_t New_Element = Reader();
         Exit_Code *= Stk_Push(&Stk,  New_Element);
         Stk_Assertion_Func(&Stk, Exit_Code);
@@ -77,8 +79,8 @@ int main() {
         Stk_Assertion_Func(&Stk, Exit_Code);
 
 
-    for (i = 0; i < Stk.Capacity; i++)
-            printf("%lf ", Stk.Data[i]);
+        for (int j = 0; j < Stk.Capacity; j++)
+            printf("%lf ", Stk.Data[j]);
 
         printf("\n");
     }
@@ -190,6 +192,14 @@ int Stk_Dtor(struct Stk_t *Stk) {
 int Stk_Verifier(struct Stk_t *Stk) {
     int Exit_Code = ALL_GOOD;
 
+    if (Stk == NULL) {
+        Exit_Code = ERROR;
+        printf("Stk is equal to NULL\n");
+        Stk_Assertion_Func(Stk, Exit_Code);
+
+        return Exit_Code;
+    }
+
     if (Stk->Data == NULL) {
         Exit_Code = ERROR;
         printf("DATA is equal to NULL\n");
@@ -229,7 +239,7 @@ int Stk_Verifier(struct Stk_t *Stk) {
 
 void Stk_Assertion_Func(struct Stk_t *Stk, int Exit_Code) {
     if (!Exit_Code) {
-        assert(Exit_Code); // and there write the line with error
+        abort(); // and there write the line with error
     }
 }
 
