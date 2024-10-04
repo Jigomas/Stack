@@ -5,271 +5,320 @@
 
 
 
-typedef double Stk_Elem_t;
+typedef double stk_elem_t;
+typedef stk_elem_t poison_elem_t;
 
-struct Stk_t {
-    Stk_Elem_t *Data;
-    unsigned int Size;
-    unsigned int Capacity;
+struct stk_t {
+    stk_elem_t *data;
+    unsigned int size;
+    unsigned int capacity;
 };
 
-enum EXIT_CODES {
-    SUCCESS = 2,
+enum exit_codeS {
     ALL_GOOD = 1,
     ERROR = 0,
 };
 
 
 
-int Stk_Ctor(struct Stk_t *Stk, unsigned int Capacity);
+int StkCtor(struct stk_t *stk, unsigned int capacity, poison_elem_t poison_elem);
 
-int Stk_Dtor(struct Stk_t *Stk);
+int StkDtor(struct stk_t *stk);
 
-void Stk_Dumper(struct Stk_t *Stk);
+void StkDumper(struct stk_t *stk, const char* file, double line, poison_elem_t poison_elem);
 
-int Stk_Verifier(struct Stk_t *Stk);
+int StkVerifier(struct stk_t *stk);
 
-int Stk_Push(struct Stk_t *Stk, Stk_Elem_t New_Element);
+int StkPush(struct stk_t *stk, stk_elem_t new_element, poison_elem_t poison_elem);
 
-int Stk_Pop(struct Stk_t *Stk);
+int StkPop(struct stk_t *stk, poison_elem_t poison_elem);
 
-void Stk_Free_Mem(struct Stk_t **Stk);
-// PascalCase
-// snake_case
-// camelCase
-void Stk_Add_Mem(struct Stk_t **Stk);
+void StkFreeMem(struct stk_t **stk);
 
-Stk_Elem_t Reader();
+void StkAddMem(struct stk_t **stk, poison_elem_t poison_elem);
 
-void Stk_Assertion_Func(struct Stk_t *Stk, int Exit_Code);
+stk_elem_t Reader();
+
+void StkAssertionFunc(struct stk_t *stk, int exit_code);
 
 
 
 int main() {
-    int Exit_Code = ALL_GOOD;
+    int exit_code = ALL_GOOD;
+    int amount_to_push = 5;
+    int amount_to_pop =  5;
 
-    struct Stk_t Stk = {};
+    poison_elem_t poison_elem = 6;
 
-    unsigned int Capacity = 5;    // this is gonna be starting Capacity
+    switch (sizeof(poison_elem) ) {
+        case sizeof(double): {
+            poison_elem = -6666;
+            break;
+        }
+
+        case sizeof(int): {
+            poison_elem = -666;
+            break;
+        }
+
+        case sizeof(short): {
+            poison_elem = -66;
+            break;
+        }
+
+        case sizeof(char): {
+            poison_elem = -6;
+            break;
+        }
+
+        default: {
+            poison_elem = -0;
+            break;
+        }
+
+    }
+    printf ("Poison Element = %lf\n", poison_elem);
+    struct stk_t stk = {};
+
+    unsigned int capacity = 5;    // this is gonna be starting capacity
 
 
 
-    Exit_Code *= Stk_Ctor(&Stk, Capacity);
-    Stk_Assertion_Func(&Stk, Exit_Code);
+    exit_code *= StkCtor(&stk, capacity, poison_elem);
+    exit_code *= StkVerifier(&stk);
 
+    for (int i = 0; i < amount_to_push/*How many do u want to Push*/; i++) {
+        stk_elem_t new_element = Reader();
 
-    for (int i = 0; i < 10/*How many do u want to Push*/; i++) {
-        Stk_Elem_t New_Element = Reader();
-        Exit_Code *= Stk_Push(&Stk,  New_Element);
-        Stk_Assertion_Func(&Stk, Exit_Code);
+        exit_code *= StkPush(&stk,  new_element, poison_elem);
+        exit_code *= StkVerifier(&stk);
     }
 
 
 
 
 
-    for (int i = 0; i < Stk.Capacity; i++)
-        printf("%lf ", Stk.Data[i]);
+    for (int i = 0; i < stk.capacity; i++)
+        printf("%lf ", stk.data[i]);
     printf("\n");
 
 
     // Using pop
-    for (int i = 0; i < 10/*How many do u want to pop*/; i++) {
-        Exit_Code *= Stk_Pop(&Stk);
-        Stk_Assertion_Func(&Stk, Exit_Code);
+    for (int i = 0; i < amount_to_pop/*How many do u want to pop*/; i++) {
+        exit_code *= StkPop(&stk, poison_elem);
+        exit_code *= StkVerifier(&stk);
 
 
-        for (int j = 0; j < Stk.Capacity; j++)
-            printf("%lf ", Stk.Data[j]);
-
+        //for (int j = 0; j < stk.capacity; j++)
+        //    printf("%lf ", stk.data[j]);
+        StkDumper(&stk, __FILE__, __LINE__, poison_elem);
         printf("\n");
     }
-    Exit_Code *= Stk_Dtor(&Stk);
+    exit_code *= StkDtor(&stk);
 
-    Exit_Code = SUCCESS;
-    printf("%d", Exit_Code);
+    printf("Programm ended with Exit Code %d", exit_code);
 
 }
 
 
 
-int Stk_Ctor(struct Stk_t *Stk, unsigned int Capacity) {   // gonna produce Stk
-    Stk->Size = 0;
-    Stk->Capacity = Capacity;
-    Stk->Data = (Stk_Elem_t *)calloc(Stk->Capacity, sizeof(Stk_Elem_t));
+int StkCtor(struct stk_t *stk, unsigned int capacity, poison_elem_t poison_elem) {   // gonna produce stk
+    stk->size = 0;
+    stk->capacity = capacity;
 
-    return(Stk_Verifier(Stk));
+    stk->data = (stk_elem_t *)calloc(stk->capacity, sizeof(stk_elem_t));
+    for (int i = 0; i < capacity; i++)
+        stk->data[i] = poison_elem;
+    return(StkVerifier(stk));
 }
 
 
 
-int Stk_Push(struct Stk_t *Stk, Stk_Elem_t New_Element) {
-    int Exit_Code = Stk_Verifier(Stk);
+int StkPush(struct stk_t *stk, stk_elem_t new_element, poison_elem_t poison_elem) {
+    int exit_code = StkVerifier(stk);
 
-    if (!Exit_Code) return Exit_Code;
+    if (!exit_code) return exit_code;
 
-    Stk_Add_Mem(&Stk);
-    printf("New_Element %lf\n", New_Element);
-    //printf("Size b4 %d\n", Stk->Size);
-    //printf("%d, %d\n", Stk->Size, Stk->Capacity);
+    StkAddMem(&stk, poison_elem);
+    printf("new_element %lf\n", new_element);
+    //printf("size b4 %d\n", stk->size);
+    //printf("%d, %d\n", stk->size, stk->capacity);
 
-    Stk->Data [Stk->Size] = New_Element;
-    Stk->Size ++;
+    stk->data [stk->size] = new_element;
+    stk->size ++;
 
-    //printf("Size after %d\n", Stk->Size);
+    //printf("size after %d\n", stk->size);
 
-    return Exit_Code;
+    return exit_code;
 }
 
 
 
-void Stk_Add_Mem(struct Stk_t **Stk) {
-    if ((*Stk)->Size == (*Stk)->Capacity) {
-        size_t New_Capacity = (*Stk)->Capacity ? (*Stk)->Capacity * 2 : 1; // Start with 1 if capacity is 0
-        Stk_Elem_t *New_Data = (Stk_Elem_t *)realloc((*Stk)->Data, New_Capacity * sizeof(Stk_Elem_t));
+void StkAddMem(struct stk_t **stk, poison_elem_t poison_elem) {
+    int exit_code = StkVerifier(*stk);
 
-        for (int i = (*Stk)->Size; i < New_Capacity; i++)
-              (*Stk)->Data [i] = 0;
+    if ((*stk)->size == (*stk)->capacity) {
+        size_t new_capacity = (*stk)->capacity ? (*stk)->capacity * 2 : 1; // Start with 1 if capacity is 0
+        stk_elem_t *new_data =
+                    (stk_elem_t *)realloc((*stk)->data, new_capacity * sizeof(stk_elem_t));
 
-        if (New_Data == NULL) {
+        for (int i = (*stk)->size; i < new_capacity; i++)
+              (*stk)->data [i] = poison_elem;
+
+        if (new_data == NULL) {
             printf("Memory allocation failed\n");
             return;
         }
 
-        (*Stk)->Data = New_Data;
-        (*Stk)->Capacity = New_Capacity; // Update capacity
+        (*stk)->data = new_data;
+        (*stk)->capacity = new_capacity; // Update capacity
     }
 }
 
 
 
-int Stk_Pop(struct Stk_t *Stk) {
-    int Exit_Code = Stk_Verifier(Stk);
+int StkPop(struct stk_t *stk, poison_elem_t poison_elem) {
+    int exit_code = StkVerifier(stk);
 
-    if (!Exit_Code || Stk->Size <= 0) return Exit_Code;
+    if (!exit_code || stk->size <= 0) return exit_code;
 
-    Stk->Size --;
-    Stk_Free_Mem(&Stk);
+    stk->size --;
+    StkFreeMem(&stk);
 
-    printf("POP %lf\n", Stk->Data [Stk->Size]);
-    Stk->Data [Stk->Size] = 0;
+    printf("Pop elemenent = %lf\n", stk->data [stk->size]);
+    stk->data [stk->size] = poison_elem;
 
-    return Exit_Code;
+    return exit_code;
 }
 
 
 
-void Stk_Free_Mem(struct Stk_t **Stk) {
-    if ((*Stk)->Size <= 0.25 * (*Stk)->Capacity) {
-        size_t New_Capacity = (*Stk)->Capacity / 2;
+void StkFreeMem(struct stk_t **stk) {
+    int exit_code = StkVerifier(*stk);
 
-        Stk_Elem_t *New_Data = (Stk_Elem_t *)realloc((*Stk)->Data, New_Capacity * sizeof(Stk_Elem_t));
+    if ((*stk)->size <= 0.25 * (*stk)->capacity) {
+        size_t new_capacity = (*stk)->capacity / 2;
 
-        if (New_Data == NULL) {
+        stk_elem_t *new_data =
+                    (stk_elem_t *)realloc((*stk)->data, new_capacity * sizeof(stk_elem_t));
+
+        if (new_data == NULL) {
             printf("Memory allocation failed\n");
             return;
         }
 
-        (*Stk)->Data = New_Data;
-        (*Stk)->Capacity = New_Capacity; // Update capacity
+        (*stk)->data = new_data;
+        (*stk)->capacity = new_capacity; // Update capacity
     }
 }
 
 
 
-int Stk_Dtor(struct Stk_t *Stk) {
-    for (int i = 0; i < (Stk->Size); i++)
-        Stk->Data [i] = 0;
+int StkDtor(struct stk_t *stk) {
+    int exit_code = StkVerifier(stk);
 
-    Stk->Capacity = 0;
-    Stk->Size = 0;
+    for (int i = 0; i < (stk->size); i++)
+        stk->data [i] = 0;
 
-    free(Stk->Data);
+    stk->capacity = 0;
+    stk->size = 0;
+
+    free(stk->data);
+    return exit_code;
 }
 
 
 
-int Stk_Verifier(struct Stk_t *Stk) {
-    int Exit_Code = ALL_GOOD;
+int StkVerifier(struct stk_t *stk) {
+    int exit_code = ALL_GOOD;
 
-    if (Stk == NULL) {
-        Exit_Code = ERROR;
-        printf("Stk is equal to NULL\n");
-        Stk_Assertion_Func(Stk, Exit_Code);
+    if (stk == NULL) {
+        exit_code = ERROR;
+        printf("stk is equal to NULL\n");
+        StkAssertionFunc(stk, exit_code);
 
-        return Exit_Code;
+        return exit_code;
     }
 
-    if (Stk->Data == NULL) {
-        Exit_Code = ERROR;
-        printf("DATA is equal to NULL\n");
-        Stk_Assertion_Func(Stk, Exit_Code);
+    if (stk->data == NULL) {
+        exit_code = ERROR;
+        printf("data is equal to NULL\n");
+        StkAssertionFunc(stk, exit_code);
 
-        return Exit_Code;
+        return exit_code;
     }
 
-    if (Stk->Size < 0) {
-        Exit_Code = ERROR;
-        printf("Size is less than 0\n");
-        Stk_Assertion_Func(Stk, Exit_Code);
+    if (stk->size < 0) {
+        exit_code = ERROR;
+        printf("size is less than 0\n");
+        StkAssertionFunc(stk, exit_code);
 
-        return Exit_Code;
+        return exit_code;
     }
 
-    if (Stk->Capacity < 0) {
-        Exit_Code = ERROR;
-        printf("Capacity is less than 0\n");
-        Stk_Assertion_Func(Stk, Exit_Code);
+    if (stk->capacity < 0) {
+        exit_code = ERROR;
+        printf("capacity is less than 0\n");
+        StkAssertionFunc(stk, exit_code);
 
-        return Exit_Code;
+        return exit_code;
     }
 
-    if (Stk->Size > Stk->Capacity) {
-        Exit_Code = ERROR;
-        printf("Size is bigger than Capacity\n");
-        Stk_Assertion_Func(Stk, Exit_Code);
+    if (stk->size > stk->capacity) {
+        exit_code = ERROR;
+        printf("size is bigger than capacity\n");
+        StkAssertionFunc(stk, exit_code);
 
-        return Exit_Code;
+        return exit_code;
     }
 
     return ALL_GOOD;
 }
 
-
-
-void Stk_Assertion_Func(struct Stk_t *Stk, int Exit_Code) {
-    if (!Exit_Code) {
+/*
+struct stk_t {
+    stk_elem_t *data;
+    unsigned int size;
+    unsigned int capacity;
+};
+*/
+void StkAssertionFunc(struct stk_t *stk, int exit_code) {
+    if (!exit_code) {
         abort(); // and there write the line with error
     }
 }
 
 
 
-void Stk_Dumper(struct Stk_t *Stk) {
-    printf("Capacity = %d\n", Stk->Capacity);
-    printf("Size = %d\n", Stk->Size);
+void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t poison_elem) {
 
-    for (int i = 0; i < Stk->Capacity; i++)
-        printf("Data[%d] = %lf\n", i, Stk->Data [i]);
+    printf("\nFile: %d Line: %d\n", file, line);
+    printf("capacity = %d\n",     stk->capacity);
+    printf("size     = %d\n",      stk->size);
+
+    for (int i = 0; i < stk->capacity; i++) {
+        if (stk->data [i] != poison_elem)
+            printf("data[%d] = %lf\n", i, stk->data [i]);
+    }
 }
 
 
 
-Stk_Elem_t Reader()
+stk_elem_t Reader()
 {
-    Stk_Elem_t Received_Num = 0;
-    int Had_Read_Sth = 0;
+    stk_elem_t received_num = 0;
+    int had_read_sth = 0;
 
     printf("Pls write a number\n");
 
-    while (!Had_Read_Sth) {
+    while (!had_read_sth) {
 
-        Had_Read_Sth = scanf(" %lf", &Received_Num);
-        if (!Had_Read_Sth) {
+        had_read_sth = scanf(" %lf", &received_num);
+        if (!had_read_sth) {
             printf("Try again\n");
             break;
         }
     }
 
-    return Received_Num;
+    return received_num;
 }
