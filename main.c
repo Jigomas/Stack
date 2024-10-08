@@ -34,6 +34,8 @@ struct stk_t {
     DEBUG(stk_elem_t hash);
     DEBUG(stk_elem_t hash_after);
 
+    DEBUG(stk_elem_t stk_hash);
+
     DEBUG(canary_t canary);
 
     DEBUG(canary_t stk_l_canary);
@@ -64,6 +66,9 @@ void StkAddMem(struct stk_t **stk, poison_elem_t poison_elem, DEBUG(canary_t can
 
 stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary));
 
+stk_elem_t StkStructCountHash(struct stk_t *stk, DEBUG(canary_t canary));
+
+
 stk_elem_t Reader();
 
 void StkAssertionFunc(struct stk_t *stk, int exit_code);
@@ -75,34 +80,42 @@ int main() {
     int amount_to_push = 5;
     int amount_to_pop =  3;
 
-    DEBUG(canary_t canary = 123456789;)
 
     poison_elem_t poison_elem = 0; // not bigger than  stk_elem_t
-
+    DEBUG(canary_t canary = 0;)
     DEBUG(
             switch (sizeof(poison_elem) ) {
             case sizeof(double): {
                 poison_elem = -6666;
+                canary = 123456789;
                 break;
             }
 
             case sizeof(int): {
                 poison_elem = -666;
+                canary = 12345678;
+
                 break;
             }
 
             case sizeof(short): {
                 poison_elem = -66;
+                canary = 1234567;
+
                 break;
             }
 
             case sizeof(char): {
                 poison_elem = -6;
+                canary = 1;
+
                 break;
             }
 
             default: {
                 poison_elem = -0;
+                canary = 1;
+
                 break;
             }
         }
@@ -174,6 +187,9 @@ int StkCtor(struct stk_t *stk, unsigned int capacity, poison_elem_t poison_elem,
 
     for (int i = 0; i < capacity; i++)
         *(stk->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) = poison_elem;
+
+    DEBUG(stk->stk_hash = StkStructCountHash(stk, stk->canary);)
+
     return(StkVerifier(stk));
 }
 
@@ -194,6 +210,8 @@ int StkPush(struct stk_t *stk, stk_elem_t new_element, poison_elem_t poison_elem
 
     DEBUG(stk->hash_after = (stk->hash + 31) + new_element;)
     DEBUG(stk->hash       = StkCountHash(stk, stk->canary);)
+
+    DEBUG(stk->stk_hash   = StkStructCountHash(stk, canary);)
 
     exit_code *= StkVerifier(stk);
 
@@ -234,7 +252,8 @@ int StkPop(struct stk_t *stk, poison_elem_t poison_elem, DEBUG(canary_t canary))
     stk->size --;
 
     DEBUG(stk->hash_after = (stk->hash - 31) - *(stk->data + stk->size * sizeof(stk_elem_t) + sizeof(canary_t));)
-    DEBUG(stk->hash         = StkCountHash(stk, stk->canary);)
+    DEBUG(stk->hash      = StkCountHash(stk, stk->canary);)
+    DEBUG(stk->stk_hash   = StkStructCountHash(stk, canary);)
 
     StkFreeMem(&stk, DEBUG(canary));
 
@@ -285,6 +304,9 @@ int StkDtor(struct stk_t *stk) {
 
 
 
+
+
+
 int StkVerifier(struct stk_t *stk) {
     DEBUG(
         int exit_code = ALL_GOOD;
@@ -302,6 +324,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("data is equal to NULL\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -311,6 +334,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("size is less than 0\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -320,6 +344,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("capacity is less than 0\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -329,6 +354,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("size is bigger than capacity\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -339,6 +365,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("canary of data is damaged\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -348,6 +375,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("canary of struct is damaged\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -357,12 +385,23 @@ int StkVerifier(struct stk_t *stk) {
         if (stk->hash != stk->hash_after) {
             exit_code = ERROR;
 
-            printf("damaged hash\n");
+            printf("damaged hash of data\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
         }
 
+
+        if (stk->stk_hash != StkStructCountHash(stk, stk->canary)) {
+            exit_code = ERROR;
+
+            printf("damaged hash of struct\n");
+            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkAssertionFunc(stk, exit_code);
+
+            return exit_code;
+        }
     )
     return ALL_GOOD;
 }
@@ -378,6 +417,7 @@ void StkAssertionFunc(struct stk_t *stk, int exit_code) {
 
 
 void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t poison_elem) {
+    //StkVerifier(stk);
     printf("\n****************************************\n");
     printf("File: %d Line: %d\n", file, line);
     printf("capacity = %d\n",       stk->capacity);
@@ -387,6 +427,7 @@ void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t p
     DEBUG(printf("Hash            = %lf\n", stk->hash) ;)
     DEBUG(printf("Hash after      = %lf\n", stk->hash_after) ;)
 
+    DEBUG(printf("Struct Hash     = %lf\n", stk->stk_hash) ;)
 
     DEBUG(printf("Canary          = %lf\n", stk->canary) ;)
     DEBUG(printf("LCanary of stk  = %lf\n", stk->stk_l_canary) ;)
@@ -405,8 +446,8 @@ void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t p
 }
 
 
-stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary)) {
-    // dunno how to verify it           StkVerifier(stk);
+stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary)) { // make some functions static i
+    //StkVerifier(stk);
     stk_elem_t hash_summ = 5381;
     DEBUG(
         for (int i = 0; i < stk->size; i++) {
@@ -417,9 +458,15 @@ stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary)) {
     return hash_summ;
 }
 
+stk_elem_t StkStructCountHash(struct stk_t *stk, DEBUG(canary_t canary)) {
+    //StkVerifier(stk);
+    stk_elem_t hash_summ = 5381 + stk->canary + stk->size + stk->capacity + stk->hash + stk->hash_after
+                                + stk->stk_l_canary + stk->stk_r_canary;
+    return hash_summ;
+}
 
-stk_elem_t Reader()
-{
+
+stk_elem_t Reader() {
     stk_elem_t received_num = 0;
     int had_read_sth = 0;
 
