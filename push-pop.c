@@ -18,15 +18,13 @@ int StkPush(struct stk_t *stk, stk_elem_t new_element, poison_elem_t poison_elem
     *(stk->data + stk->size * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) = new_element;
     stk->size ++;
 
-    //printf("size after %d\n", stk->size);
 
     DEBUG(stk->hash_after = (stk->hash + 31) + new_element;)
     DEBUG(stk->hash       = StkCountHash(stk, stk->canary);)
-
     DEBUG(stk->stk_hash   = StkStructCountHash(stk, canary);)
 
     exit_code *= StkVerifier(stk);
-
+    StkDumper(stk, __FILE__, __LINE__, poison_elem);
     return exit_code;
 }
 
@@ -35,11 +33,17 @@ int StkPush(struct stk_t *stk, stk_elem_t new_element, poison_elem_t poison_elem
 void StkAddMem(struct stk_t **stk, poison_elem_t poison_elem, DEBUG(canary_t canary) ) {
     int exit_code = StkVerifier(*stk);
 
+    stk_elem_t * Temp = (stk_elem_t *)malloc((*stk)->capacity * sizeof(stk_elem_t));
+
+    for (int i = 0; i < (*stk)->size; i++)
+              Temp[i] = *((*stk)->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) );
+
     if ((*stk)->size == (*stk)->capacity) {
-        size_t new_capacity = (*stk)->capacity ? (*stk)->capacity * 2 : 1; // Start with 1 if capacity is 0
+
+        unsigned int new_capacity = (*stk)->capacity ? (*stk)->capacity * 2 : 1; // Start with 1 if capacity is 0
 
         (*stk)->data =
-                    (stk_elem_t *)realloc((*stk)->data, new_capacity * sizeof(stk_elem_t));
+                    (stk_elem_t *)realloc((*stk)->data, new_capacity * sizeof(stk_elem_t) DEBUG(+ 2 * sizeof(canary_t)));
 
         for (int i = (*stk)->size; i < new_capacity; i++)
               *((*stk)->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) = poison_elem;
@@ -49,7 +53,15 @@ void StkAddMem(struct stk_t **stk, poison_elem_t poison_elem, DEBUG(canary_t can
             return;
         }
 
+        for (int i = 0; i < (*stk)->size; i++)
+            *((*stk)->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) = Temp[i];
+
         (*stk)->capacity = new_capacity; // Update capacity
+
+
+        printf("realloc finished \n\n\n\n");
+        StkDumper(*stk, __FILE__, __LINE__, poison_elem);
+
 
         DEBUG(*((*stk)->data + (*stk)->capacity * sizeof(stk_elem_t) + sizeof(canary_t) ) = canary;)
     }
@@ -82,8 +94,11 @@ void StkFreeMem(struct stk_t **stk, DEBUG(canary_t canary)) {
     int exit_code = StkVerifier(*stk);
 
     if ((*stk)->size <= 0.25 * (*stk)->capacity) {
-        size_t new_capacity = (*stk)->capacity / 2;
+        stk_elem_t * Temp = (stk_elem_t *)malloc((*stk)->capacity * sizeof(stk_elem_t));
+        for (int i = 0; i < (*stk)->size; i++)
+            Temp[i] = *((*stk)->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) );
 
+        size_t new_capacity = (*stk)->capacity / 2;
         stk_elem_t *new_data =
                     (stk_elem_t *)realloc((*stk)->data, new_capacity * sizeof(stk_elem_t) DEBUG(+ 2 * sizeof(canary_t)));
 
@@ -94,6 +109,9 @@ void StkFreeMem(struct stk_t **stk, DEBUG(canary_t canary)) {
 
         (*stk)->data = new_data;
         (*stk)->capacity = new_capacity; // Update capacity
+
+        for (int i = 0; i < (*stk)->size; i++)
+            *((*stk)->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) = Temp[i];
 
         DEBUG(*((*stk)->data + (*stk)->capacity * sizeof(stk_elem_t) + sizeof(canary_t) ) = canary;)
     }

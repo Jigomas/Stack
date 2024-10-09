@@ -11,8 +11,9 @@
 
 int main() {
     int exit_code = ALL_GOOD;
-    int amount_to_push = 5;
-    int amount_to_pop =  3;
+    int amount_to_push = 10;
+    int amount_to_pop =  8;
+    unsigned int capacity = 5;    // this is gonna be starting capacity
 
 
     poison_elem_t poison_elem = 0; // not bigger than  stk_elem_t
@@ -58,7 +59,6 @@ int main() {
     DEBUG(printf ("Poison Element = %lf\n", poison_elem);)
     struct stk_t stk = {};
 
-    unsigned int capacity = 5;    // this is gonna be starting capacity
 
     exit_code *= StkCtor(&stk, capacity, poison_elem, DEBUG(canary));
     DEBUG(exit_code *= StkVerifier(&stk);)
@@ -90,9 +90,6 @@ int main() {
             StkDumper(&stk, __FILE__, __LINE__, poison_elem);
         )
     }
-
-
-
 
     printf("****************************************\n");
     printf("Programm ended with stack of %d elements\n", stk.size);
