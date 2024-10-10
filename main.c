@@ -8,11 +8,19 @@
 #include "constructor-destructor.h"
 #include "reader.h"
 
+void EndingFunctionOfProgram(struct stk_t *stk, int exit_code);
+
+int RunOfProcessor(struct stk_t *stk, int exit_code);
+
+
 
 int main() {
+
+    /**********************************************************************************************/
+    //Starting
     int exit_code = ALL_GOOD;
-    int amount_to_push = 10;
-    int amount_to_pop =  8;
+    int amount_to_push = 5;
+    int amount_to_pop =  3;
     unsigned int capacity = 5;    // this is gonna be starting capacity
 
 
@@ -59,70 +67,86 @@ int main() {
     DEBUG(printf ("Poison Element = %lf\n", poison_elem);)
     struct stk_t stk = {};
 
-
     exit_code *= StkCtor(&stk, capacity, poison_elem, DEBUG(canary));
-    DEBUG(exit_code *= StkVerifier(&stk);)
-    //Start
+    //EndOfStarting part
+    /**********************************************************************************************/
 
-
-    for (int i = 0; i < amount_to_push/*How many do u want to Push*/; i++) {
-        DEBUG(exit_code *= StkVerifier(&stk);)
-        stk_elem_t new_element = Reader();
-
-        exit_code *= StkPush(&stk,  new_element);
-    }
+    RunOfProcessor(&stk, exit_code);
 
 
 
 
-    printf("Programm started with stack of %d elements\n", stk.size);
-    DEBUG(StkDumper(&stk, __FILE__, __LINE__);)
+
+    EndingFunctionOfProgram(&stk, exit_code);
+}
 
 
 
-    // Using pop
-    for (int i = 0; i < amount_to_pop/*How many do u want to pop*/; i++) {
-        DEBUG(exit_code *= StkVerifier(&stk);)
-
-        exit_code *= StkPop(&stk);
-
-        DEBUG(
-            StkDumper(&stk, __FILE__, __LINE__);
-        )
-    }
-
+void EndingFunctionOfProgram(struct stk_t *stk, int exit_code) {
+    StkVerifier(stk);
     printf("****************************************\n");
-    printf("Programm ended with stack of %d elements\n", stk.size);
+    printf("Programm ended with stack of %d elements\n", stk->size);
 
-    DEBUG(StkDumper(&stk, __FILE__, __LINE__);)
+    DEBUG(StkDumper(stk, __FILE__, __LINE__);)
 
-    for (int i = 0; i < amount_to_push; i++) {
-        DEBUG(exit_code *= StkVerifier(&stk);)
-        stk_elem_t new_element = Reader();
-
-        exit_code *= StkPush(&stk,  new_element);
-    }
-
-
-    exit_code *= StkDtor(&stk);
+    exit_code = StkDtor(stk);
     DEBUG(printf("Programm ended with Exit Code %d", exit_code);)
 }
-/*
-void EndingFunctionOfProgram() {
-    printf("****************************************\n");
-    printf("Programm ended with stack of %d elements\n", stk.size);
 
-    DEBUG(StkDumper(&stk, __FILE__, __LINE__, poison_elem);)
 
-    for (int i = 0; i < amount_to_push; i++) {
-        DEBUG(exit_code *= StkVerifier(&stk);)
-        stk_elem_t new_element = Reader();
 
-        exit_code *= StkPush(&stk,  new_element, poison_elem, DEBUG(canary));
+int RunOfProcessor(struct stk_t *stk, int exit_code) {
+    int instr_pnt = 0;
+    stk_elem_t all_instructions[0] = {};//todo receiver
+    while (1) {
+        switch ( *(int*)() )  {
+            case PUSH: {
+                StkPush(stk, )
+            }
+
+            case ADD: {
+
+            }
+
+            case SUB: {
+
+            }
+
+            case MULT: {
+
+            }
+
+            case DIV: {
+
+            }
+
+            case OUT: {
+
+            }
+
+            case IN: {
+
+            }
+
+            case SQRT: {
+
+            }
+
+            case SIN: {
+
+            }
+
+            case COS: {
+
+            }
+
+            case DUMP: {
+
+            }
+
+            case HALT: {
+
+            }
+        }
     }
-
-
-    exit_code *= StkDtor(&stk);
-    DEBUG(printf("Programm ended with Exit Code %d", exit_code);)
 }
-*/

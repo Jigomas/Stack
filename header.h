@@ -36,9 +36,24 @@ struct stk_t {
     DEBUG(canary_t stk_l_canary;)
 };
 
-enum exit_codeS {
+enum exit_codes {
     ALL_GOOD = 1,
     ERROR = 0,
+};
+
+enum all_numbers_commands {
+    PUSH = 1 ,
+    ADD  = 2 ,
+    SUB  = 3 ,
+    MULT = 4 ,
+    DIV  = 5 ,
+    OUT  = 6 ,
+    IN   = 7 ,
+    SQRT = 8 ,
+    SIN  = 9 ,
+    COS  = 10,
+    DUMP = 11,
+    HALT = 0 ,
 };
 
 #endif // HEADER
