@@ -95,7 +95,13 @@ int main() {
     printf("Programm ended with stack of %d elements\n", stk.size);
 
     DEBUG(StkDumper(&stk, __FILE__, __LINE__, poison_elem);)
+    
+    for (int i = 0; i < amount_to_push/*How many do u want to Push*/; i++) {
+        DEBUG(exit_code *= StkVerifier(&stk);)
+        stk_elem_t new_element = Reader();
 
+        exit_code *= StkPush(&stk,  new_element, poison_elem, DEBUG(canary));
+    }
 
 
     exit_code *= StkDtor(&stk);

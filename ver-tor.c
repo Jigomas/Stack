@@ -60,7 +60,7 @@ int StkVerifier(struct stk_t *stk) {
             return exit_code;
         }
 
-        if ( (*(stk->data + stk->capacity * sizeof(stk_elem_t) +
+        if ( (*(stk_elem_t *)((char *)stk->data + stk->capacity * sizeof(stk_elem_t) +
                     sizeof(canary_t)))  != *(stk->data) || *(stk->data) != stk->canary ) {
             exit_code = ERROR;
 
@@ -133,13 +133,13 @@ void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t p
     DEBUG(printf("LCanary of stk  = %lf\n", stk->stk_l_canary) ;)
     DEBUG(printf("RCanary of stk  = %lf\n", stk->stk_r_canary) ;)
     DEBUG(printf("LCanary of data = %lf\n", *(stk)->data) ;)
-    DEBUG(printf("RCanary of data = %lf\n", *(stk->data + stk->capacity * sizeof(stk_elem_t)
+    DEBUG(printf("RCanary of data = %lf\n", *(stk_elem_t *)((char *)stk->data + stk->capacity * sizeof(stk_elem_t)
                                                         + sizeof(canary_t) )) ;)
     printf("\n");
 
     for (int i = 0; i < stk->capacity; i++) {
         //if (*(stk->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) != poison_elem)
-            printf("data[%d] = %lf\n", i + 1, *(stk->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ));
+            printf("data[%d] = %lf\n", i + 1, *(stk_elem_t *)((char *)stk->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ));
     }
     printf("\n");
 
@@ -151,7 +151,7 @@ stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary)) { // make som
     stk_elem_t hash_summ = 5381;
     DEBUG(
         for (int i = 0; i < stk->size; i++) {
-            hash_summ = (hash_summ + 31) + *(stk->data + i * sizeof(stk_elem_t) + sizeof(canary_t));
+            hash_summ = (hash_summ + 31) + *(stk_elem_t *)((char *)stk->data + i * sizeof(stk_elem_t) + sizeof(canary_t));
             // xor must be here
         }
     )
