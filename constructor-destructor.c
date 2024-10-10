@@ -13,9 +13,10 @@ int StkCtor(struct stk_t *stk, unsigned int capacity, poison_elem_t poison_elem,
         stk->stk_l_canary = canary;
         stk->stk_r_canary = canary;
         stk->canary       = canary;
-
+        
         stk->hash         = 5381;
         stk->hash_after   = 5381;
+        stk->poison_elem  = poison_elem;
     )
 
     stk->size = 0;
@@ -32,7 +33,7 @@ int StkCtor(struct stk_t *stk, unsigned int capacity, poison_elem_t poison_elem,
     for (int i = 0; i < capacity; i++)
         *(stk_elem_t *)((char *)stk->data + i * sizeof(stk_elem_t) DEBUG(+ sizeof(canary_t)) ) = poison_elem;
 
-    DEBUG(stk->stk_hash = StkStructCountHash(stk, stk->canary);)
+    DEBUG(stk->stk_hash = StkStructCountHash(stk);)
 
     return(StkVerifier(stk));
 }

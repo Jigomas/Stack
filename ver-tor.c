@@ -24,7 +24,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("data is equal to NULL\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -34,7 +34,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("size is less than 0\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -44,7 +44,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("capacity is less than 0\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -54,7 +54,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("size is bigger than capacity\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -65,7 +65,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("canary of data is damaged\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -75,7 +75,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("canary of struct is damaged\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -86,7 +86,7 @@ int StkVerifier(struct stk_t *stk) {
             exit_code = ERROR;
 
             printf("damaged hash of data\n");
-            StkDumper(stk, __FILE__, __LINE__, 0);
+            StkDumper(stk, __FILE__, __LINE__);
             StkAssertionFunc(stk, exit_code);
 
             return exit_code;
@@ -116,7 +116,7 @@ void StkAssertionFunc(struct stk_t *stk, int exit_code) {
 
 
 
-void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t poison_elem) {
+void StkDumper(struct stk_t *stk, const char* line, double file) {
     //StkVerifier(stk);
     printf("\n****************************************\n");
     printf("File: %d Line: %d\n", file, line);
@@ -146,7 +146,7 @@ void StkDumper(struct stk_t *stk, const char* line, double file, poison_elem_t p
 }
 
 
-stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary)) { // make some functions static i
+stk_elem_t StkCountHash(struct stk_t *stk) { // make some functions static i
     //StkVerifier(stk);
     stk_elem_t hash_summ = 5381;
     DEBUG(
@@ -158,7 +158,7 @@ stk_elem_t StkCountHash(struct stk_t *stk, DEBUG(canary_t canary)) { // make som
     return hash_summ;
 }
 
-stk_elem_t StkStructCountHash(struct stk_t *stk, DEBUG(canary_t canary)) {
+stk_elem_t StkStructCountHash(struct stk_t *stk) {
     //StkVerifier(stk);
     DEBUG(
     stk_elem_t hash_summ = 5381 + stk->canary + stk->size + stk->capacity + stk->hash + stk->hash_after

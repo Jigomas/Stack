@@ -69,14 +69,14 @@ int main() {
         DEBUG(exit_code *= StkVerifier(&stk);)
         stk_elem_t new_element = Reader();
 
-        exit_code *= StkPush(&stk,  new_element, poison_elem, DEBUG(canary));
+        exit_code *= StkPush(&stk,  new_element);
     }
 
 
 
 
     printf("Programm started with stack of %d elements\n", stk.size);
-    DEBUG(StkDumper(&stk, __FILE__, __LINE__, poison_elem);)
+    DEBUG(StkDumper(&stk, __FILE__, __LINE__);)
 
 
 
@@ -84,19 +84,37 @@ int main() {
     for (int i = 0; i < amount_to_pop/*How many do u want to pop*/; i++) {
         DEBUG(exit_code *= StkVerifier(&stk);)
 
-        exit_code *= StkPop(&stk, poison_elem, DEBUG(canary));
+        exit_code *= StkPop(&stk);
 
         DEBUG(
-            StkDumper(&stk, __FILE__, __LINE__, poison_elem);
+            StkDumper(&stk, __FILE__, __LINE__);
         )
     }
 
     printf("****************************************\n");
     printf("Programm ended with stack of %d elements\n", stk.size);
 
+    DEBUG(StkDumper(&stk, __FILE__, __LINE__);)
+
+    for (int i = 0; i < amount_to_push; i++) {
+        DEBUG(exit_code *= StkVerifier(&stk);)
+        stk_elem_t new_element = Reader();
+
+        exit_code *= StkPush(&stk,  new_element);
+    }
+
+
+    exit_code *= StkDtor(&stk);
+    DEBUG(printf("Programm ended with Exit Code %d", exit_code);)
+}
+/*
+void EndingFunctionOfProgram() {
+    printf("****************************************\n");
+    printf("Programm ended with stack of %d elements\n", stk.size);
+
     DEBUG(StkDumper(&stk, __FILE__, __LINE__, poison_elem);)
-    
-    for (int i = 0; i < amount_to_push/*How many do u want to Push*/; i++) {
+
+    for (int i = 0; i < amount_to_push; i++) {
         DEBUG(exit_code *= StkVerifier(&stk);)
         stk_elem_t new_element = Reader();
 
@@ -107,4 +125,4 @@ int main() {
     exit_code *= StkDtor(&stk);
     DEBUG(printf("Programm ended with Exit Code %d", exit_code);)
 }
-
+*/
